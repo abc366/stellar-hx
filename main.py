@@ -387,7 +387,7 @@ class dyttplugin(StellarPlayer.IStellarPlayerPlugin):
             self.player.loadingAnimation(page, stop=stopLoading)
     
 def newPlugin(player:StellarPlayer.IStellarPlayer,*arg):
-    plugin = hxplugin(player)
+    plugin = dyttplugin(player)
     return plugin
 
 def destroyPlugin(plugin:StellarPlayer.IStellarPlayerPlugin):
