@@ -6,7 +6,7 @@ import StellarPlayer
 import re
 import urllib.parse
 
-dytt_url = 'https://www.hongniuzy.com'
+hx_url = 'https://www.hongniuzy.com'
 
 def concatUrl(url1, url2):
     splits = re.split(r'/+',url1)
@@ -18,7 +18,7 @@ def concatUrl(url1, url2):
     return url
 
 #爬取影视页面中的播放链接地址
-def parse_dytt_movie(url):
+def parse_hx_movie(url):
     res = requests.get(url,verify=False)
     if res.status_code == 200:
         bs = bs4.BeautifulSoup(res.content.decode('gb2312','ignore'),'html.parser')
@@ -30,7 +30,7 @@ def parse_dytt_movie(url):
         print(res.text)
 
 #爬取某个分类页面的所有影视页面链接
-def parse_dytt_page_movies(page_url):
+def parse_hx_page_movies(page_url):
     urls = []
     res = requests.get(page_url,verify=False)
     if res.status_code == 200:
@@ -56,7 +56,7 @@ def parse_dytt_page_movies(page_url):
     return urls
 
 #爬取分类对应的所有页面数
-def parse_dytt_page_num(pageUrl):
+def parse_hx_page_num(pageUrl):
     print(pageUrl)
     pages = []
     res = requests.get(pageUrl,verify=False)
@@ -74,7 +74,7 @@ def parse_dytt_page_num(pageUrl):
     return pages
 
 #爬取所有分类
-def parse_dytt_category():
+def parse_hx_category():
     urls = []
     search_urls = []
     blacks = ['经典影片','旧版游戏','游戏下载','收藏本站','APP下载']
@@ -102,7 +102,7 @@ div.searchl > p:nth-child(1) > select')
                     search_urls.append({'title':child.string,'url':child.get('value')})
     return urls, search_urls
 
-class dyttplugin(StellarPlayer.IStellarPlayerPlugin):
+class hxplugin(StellarPlayer.IStellarPlayerPlugin):
     def __init__(self,player:StellarPlayer.IStellarPlayer):
         super().__init__(player)
         self.categories = []
@@ -122,7 +122,7 @@ class dyttplugin(StellarPlayer.IStellarPlayerPlugin):
         while len(self.categories) == 0 and not self.isExit:
             self.parsePage()
             time.sleep(0.001)
-        print(f'dytt bg thread:{self.gbthread.native_id} exit')
+        print(f'hx bg thread:{self.gbthread.native_id} exit')
         # 刷新界面
         def update():
             if self.player.isModalExist('main'):
@@ -135,7 +135,7 @@ class dyttplugin(StellarPlayer.IStellarPlayerPlugin):
        
     def stop(self):
         if self.gbthread.is_alive():
-            print(f'dytt bg thread:{self.gbthread.native_id} is still running')
+            print(f'hx bg thread:{self.gbthread.native_id} is still running')
         return super().stop()
 
     def start(self):
@@ -145,19 +145,19 @@ class dyttplugin(StellarPlayer.IStellarPlayerPlugin):
     def parsePage(self):
         #获取分类导航
         if len(self.categories) == 0:
-            self.categories, self.search_urls = parse_dytt_category()
+            self.categories, self.search_urls = parse_hx_category()
         if len(self.categories) > 0:
             if not self.curCategory:
                 self.curCategory = self.categories[0]['url']
             #获取该分类的所有页面数
             if len(self.pages) == 0:
-                self.pages = parse_dytt_page_num(self.curCategory)
+                self.pages = parse_hx_page_num(self.curCategory)
                 self.num_page = '共' + str(len(self.pages)) + '页'
                 if len(self.pages) > 0:
                     #获取分页视频资源
                     if len(self.movies) == 0:
                         url = concatUrl(self.curCategory, self.pages[self.pageIndex])
-                        self.movies = parse_dytt_page_movies(url)  
+                        self.movies = parse_hx_page_movies(url)  
 
     def makeLayout(self):
         nav_labels = []
@@ -216,7 +216,7 @@ class dyttplugin(StellarPlayer.IStellarPlayerPlugin):
         self.doModal('main',800,600,'',controls)
 
     def onModalCreated(self, pageId):
-        print(f'dytt onModalCreated {pageId=}')
+        print(f'hx onModalCreated {pageId=}')
         if pageId == 'main':
             if len(self.movies) == 0:
                 self.loading()
@@ -231,7 +231,7 @@ class dyttplugin(StellarPlayer.IStellarPlayerPlugin):
         if len(self.search_urls) > 0:
             url = self.search_urls[0]['url'] + urllib.parse.quote(self.search_word,encoding='gbk')
             print(f'url={url}')
-            self.search_movies = parse_dytt_page_movies(url)
+            self.search_movies = parse_hx_page_movies(url)
             if len(self.search_movies) > 0:
                 list_layout = {'group':[{'type':'label','name':'title','width':0.9},{'type':'link','name':'播
 
@@ -255,7 +255,7 @@ class dyttplugin(StellarPlayer.IStellarPlayerPlugin):
                     self.pageIndex = 0
                     #获取新分类的页面数
                     self.loading()
-                    self.pages = parse_dytt_page_num(self.curCategory)
+                    self.pages = parse_hx_page_num(self.curCategory)
                     self.num_page = num_page ='共' + str(len(self.pages)) + '页'
                     self.player.updateControlValue('main','num_page',num_page)
                     self.selectPage()
@@ -264,17 +264,17 @@ class dyttplugin(StellarPlayer.IStellarPlayerPlugin):
         
     def onPlayClick(self, pageId, control, item, *args):
         if pageId == 'main':
-            playUrl = parse_dytt_movie(self.movies[item]['url'])
+            playUrl = parse_hx_movie(self.movies[item]['url'])
         elif pageId == 'search':
-            playUrl = parse_dytt_movie(self.search_movies[item]['url'])
+            playUrl = parse_hx_movie(self.search_movies[item]['url'])
         if playUrl:
             self.player.play(playUrl)
 
     def onDownloadClick(self, pageId, control, item, *args):
         if pageId == 'main':
-            playUrl = parse_dytt_movie(self.movies[item]['url'])
+            playUrl = parse_hx_movie(self.movies[item]['url'])
         elif pageId == 'search':
-            playUrl = parse_dytt_movie(self.search_movies[item]['url'])
+            playUrl = parse_hx_movie(self.search_movies[item]['url'])
         if playUrl:
             self.player.download(playUrl)
 
@@ -282,7 +282,7 @@ class dyttplugin(StellarPlayer.IStellarPlayerPlugin):
         url = self.movies[item]['url']
         title = self.movies[item]['title']
         print(url)
-        def parse_dytt_detail():
+        def parse_hx_detail():
             res = requests.get(url,verify=False)
             if res.status_code == 200:
                 controls = []
@@ -324,7 +324,7 @@ class dyttplugin(StellarPlayer.IStellarPlayerPlugin):
                 else:
                     update_detail_ui()
 
-        t = threading.Thread(target=parse_dytt_detail)
+        t = threading.Thread(target=parse_hx_detail)
         t.start()
         self.doModal(title, 600, 800, title, [])
         #删除详情播放地址
@@ -344,7 +344,7 @@ class dyttplugin(StellarPlayer.IStellarPlayerPlugin):
                 self.movies.clear()
                 self.player.updateControlValue('main','list',self.movies)
                 url = concatUrl(self.curCategory, self.pages[self.pageIndex])
-                self.movies = parse_dytt_page_movies(url)
+                self.movies = parse_hx_page_movies(url)
                 self.player.updateControlValue('main','list',self.movies)
                 self.cur_page = cur_page = '第' + str(self.pageIndex + 1) + '页'
                 self.player.updateControlValue('main','cur_page',cur_page)
@@ -387,7 +387,7 @@ class dyttplugin(StellarPlayer.IStellarPlayerPlugin):
             self.player.loadingAnimation(page, stop=stopLoading)
     
 def newPlugin(player:StellarPlayer.IStellarPlayer,*arg):
-    plugin = dyttplugin(player)
+    plugin = hxplugin(player)
     return plugin
 
 def destroyPlugin(plugin:StellarPlayer.IStellarPlayerPlugin):
